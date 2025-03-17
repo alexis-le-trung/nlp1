@@ -2,3 +2,4 @@ Cinemagoer
 Unidecode
 numpy
 pandas
+tqdm

@@ -4,7 +4,10 @@ Add genres to the script database
 import pandas as pd
 import numpy as np
 from get_movie_dets import get_imdb, get_tmdb, tmdb_genres_map
+from tqdm.std import tqdm
 
+
+# Download the data from https://www.kaggle.com/datasets/bwandowando/40k-movie-scripts-from-springfield-springfield
 path = "../data/Scripts.csv"
 
 
@@ -38,11 +41,13 @@ def update_tmdb_data(row):
     return row
 
 if __name__ == "__main__":
+    print("Loading data")
     df = pd.read_csv(path, delimiter=",", quotechar="\"")
     df = df.dropna()
     df = df.drop(columns=["URL"])
 
     # Since the database is large we will process it in chunks
+    print("Split data into chunks")
     try:
         with open('last_chunk.txt', 'r') as file:
             last_chunk = int(file.read())
@@ -53,6 +58,7 @@ if __name__ == "__main__":
     nbchunks = len(chunks)
     
     if last_chunk == -1:
+        print("Processing chunk 0")
         chunkFrame = chunks[0].apply(update_tmdb_data, axis=1)
         last_chunk = 1
         chunkFrame.to_csv("MovieData.csv", mode='w', header=True, index=False)
@@ -61,7 +67,7 @@ if __name__ == "__main__":
         print("Resuming from chunk " + str(last_chunk))
         last_chunk += 1
     
-    for chunk in range(last_chunk, nbchunks) : 
+    for chunk in tqdm(last_chunk, nbchunks) :
         chunkFrame = chunks[chunk].apply(update_tmdb_data, axis=1)
         chunkFrame.to_csv("MovieData.csv", mode='a', header=False, index=False)
         print("chunk " + str(chunk) + " done")
